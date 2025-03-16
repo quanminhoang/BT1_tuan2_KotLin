@@ -1,7 +1,8 @@
 package com.example.bt1_tuan2_kotlin
 
+import android.opengl.Visibility
 import android.os.Bundle
-import android.view.RoundedCorner
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,11 +24,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +54,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ProfileScreen() {
+    var name by remember { mutableStateOf("") }
+    var age by remember { mutableStateOf("") }
+    var result by remember { mutableStateOf("") }
+
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -58,8 +66,33 @@ fun ProfileScreen() {
                 .padding(12.dp)
         ) {
             Title("THỰC HÀNH 01")
-            LabelColumn()
-            BtnCheck("Kiểm tra")
+            LabelColumn(
+                name = name,
+                age = age,
+                result = result,
+                onNameChange = {
+                    name = it
+                },
+                onAgeChange = {
+                    age = it
+                },
+            )
+            BtnCheck("Kiểm tra", onClick =  {
+                try {
+                    var checkAge = age.toInt()
+                    when {
+                        checkAge >= 65 -> result = "người già"
+                        checkAge >= 6 -> result = "người lớn"
+                        checkAge >= 2 -> result = "trẻ em"
+                        else -> result = "em bé"
+                    }
+                }
+
+                catch(e: Exception){
+                    result = "Vui lòng nhập số ở phần tuổi"
+                }
+
+            })
         }
     }
 }
@@ -78,7 +111,7 @@ fun Title(tvTitle: String) {
 }
 
 @Composable
-fun AppInputField(label: String) {
+fun AppInputField(label: String, text: String, onValueChange: (String) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -90,12 +123,18 @@ fun AppInputField(label: String) {
                 label, fontWeight = FontWeight.Bold, fontSize = 16.sp
             )
         }
-        InputTextField()
+        InputTextField(text, onValueChange)
     }
 }
 
 @Composable
-fun LabelColumn() {
+fun LabelColumn(
+    name: String,
+    age: String,
+    result: String,
+    onNameChange: (String) -> Unit,
+    onAgeChange: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -104,20 +143,21 @@ fun LabelColumn() {
             )
             .padding(24.dp)
     ) {
-        AppInputField("Họ và tên")
+        AppInputField("Họ và tên", name, onNameChange)
         Box(modifier = Modifier.height(20.dp))
-        AppInputField("Tuổi")
+        AppInputField("Tuổi", age, onAgeChange)
+        AgeDislay(result, name)
     }
 }
 
 @Composable
-fun InputTextField() {
+fun InputTextField(text: String, onValueChange: (String) -> Unit) {
     TextField(
         modifier = Modifier
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
             .clip(shape = RoundedCornerShape(8.dp)),
-        value = "",
-        onValueChange = {},
+        value = text,
+        onValueChange = onValueChange,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
@@ -127,14 +167,27 @@ fun InputTextField() {
     )
 }
 
-
 @Composable
-fun BtnCheck(check: String) {
+fun BtnCheck(check: String, onClick: () -> Unit) {
     Button(
-        onClick = {}, shape = RoundedCornerShape(8.dp), modifier = Modifier.padding(top = 42.dp)
+        onClick = onClick, shape = RoundedCornerShape(8.dp), modifier = Modifier.padding(top = 42.dp)
     ) {
         Text(
             text = check, modifier = Modifier.padding(horizontal = 32.dp), fontSize = 24.sp
+        )
+    }
+}
+
+@Composable
+fun AgeDislay(result: String, name:String) {
+    if (result.isNotEmpty()) {
+        return Text(
+            text = "$name là $result",
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp)
         )
     }
 }
